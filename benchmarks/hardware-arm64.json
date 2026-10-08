@@ -1,0 +1,23 @@
+{
+  "measured_date": "2026-10-08",
+  "cpu": "Apple M4",
+  "architecture": "arm64",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "compiler": "AppleClang 21.0.0.21000334",
+  "build_type": "Release",
+  "flags": "CMake Release defaults; no -march=native or fast-math",
+  "warmup": 2,
+  "iterations": 5,
+  "channels": 3,
+  "gaussian": {
+    "kernel": 5,
+    "sigma": 1.4
+  },
+  "input": "deterministic synthetic: byte[i]=(i*37+i/97)%256",
+  "environment": "local development machine; no CPU affinity, frequency locking or isolation; other development work may introduce scheduling noise",
+  "commands": [
+    "build/image_processing_engine_bench gaussian 5 > benchmarks/gaussian-arm64.csv",
+    "build/image_processing_engine_bench invert 5 > benchmarks/invert-arm64.csv"
+  ],
+  "logical_cpus": 10
+}

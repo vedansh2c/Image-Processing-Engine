@@ -1,0 +1,26 @@
+name: image-processing-engine
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    init: true
+    restart: unless-stopped
+    mem_limit: 2g
+    networks: [engine]
+    security_opt: [no-new-privileges:true]
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    init: true
+    restart: unless-stopped
+    ports: ["127.0.0.1:${IMAGE_PROCESSING_ENGINE_PORT:-3000}:8080"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [engine]
+    security_opt: [no-new-privileges:true]
+networks:
+  engine:
+    driver: bridge

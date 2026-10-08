@@ -1,0 +1,32 @@
+name: Image Processing Engine checks
+on: [push, pull_request]
+jobs:
+  native-and-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r backend/requirements-dev.txt
+      - run: cmake -S engine -B build -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE=$(which python) && cmake --build build -j 2 && ctest --test-dir build --output-on-failure
+      - run: PYTHONPATH="$PWD/build:$PWD" pytest backend/tests -q
+      - run: cmake -S engine -B build-asan -DPF_BUILD_PYTHON=OFF -DPF_SANITIZE=ON -DCMAKE_BUILD_TYPE=Debug && cmake --build build-asan -j 2 && ctest --test-dir build-asan --output-on-failure
+  frontend-and-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - run: docker compose up --build -d --wait --wait-timeout 240
+      - run: npx playwright install --with-deps chromium && npm run test:e2e
+        working-directory: frontend
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+      - if: always()
+        run: docker compose logs && docker compose down
